@@ -10,6 +10,15 @@ import cv2 as cv
 import numpy as np
 import mediapipe as mp
 
+# Workaround for the dll files
+import os
+os.add_dll_directory(os.path.dirname(os.path.abspath(__file__)) + "/lib")
+from Error import ObException
+import StreamProfile
+import Pipeline
+from Property import *
+from ObTypes import *
+
 from utils import CvFpsCalc
 from utils import gesturecalcs
 from model import KeyPointClassifier
@@ -18,7 +27,7 @@ from model import PointHistoryClassifier
 
 def get_args():
     parser = argparse.ArgumentParser()
-
+    parser.add_argument("--device_type", type=int, default=0)
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--width", help='cap width', type=int, default=960)
     parser.add_argument("--height", help='cap height', type=int, default=540)
@@ -41,7 +50,7 @@ def get_args():
 def main():
     # Argument parsing #####################################################
     args = get_args()
-
+    device_type = args.device_type
     cap_device = args.device
     cap_width = args.width
     cap_height = args.height
@@ -53,10 +62,34 @@ def main():
     use_brect = True
 
     # Camera preparation #####################################################
-    cap = cv.VideoCapture(cap_device)
-    cap.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
-    cap.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
-
+    if device_type == 0:
+        cap = cv.VideoCapture(cap_device)
+        cap.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
+        cap.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
+    else:
+        pipe = Pipeline.Pipeline(None, None)
+        # Configure which streams to enable or disable for the Pipeline by creating a Config
+        config = Pipeline.Config()
+        try:
+            # Get all stream configurations of a color camera, including stream resolution, frame rate, and frame format
+            profiles = pipe.getStreamProfileList(OB_PY_SENSOR_COLOR)
+            videoProfile = None
+            try:
+                # Find the corresponding Profile according to the specified format, the RGB888 format is preferred
+                videoProfile = profiles.getVideoStreamProfile(
+                    640, 0, OB_PY_FORMAT_RGB888, 30)
+                print(videoProfile, "lol")
+            except ObException as e:
+                print("function: %s\nargs: %s\nmessage: %s\ntype: %d\nstatus: %d" % (
+                    e.getName(), e.getArgs(), e.getMessage(), e.getExceptionType(), e.getStatus()))
+                # Alternative if it does not exist
+                videoProfile = profiles.getVideoStreamProfile(
+                    640, 0, OB_PY_FORMAT_UNKNOWN, 30)
+            colorProfile = videoProfile.toConcreteStreamProfile(OB_PY_STREAM_VIDEO)
+            config.enableStream(colorProfile)
+        except ObException as e:
+            print("Current device does not support color sensor!")
+            sys.exit()
     # Model load #############################################################
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(
@@ -108,11 +141,29 @@ def main():
         number, mode = gesturecalcs.select_mode(key, mode)
 
         # Camera capture #####################################################
-        ret, image = cap.read()
-        if not ret:
-            break
-        image = cv.flip(image, 1)  # Mirror display
-        debug_image = copy.deepcopy(image)
+        if device_type == 0:
+            ret, image = cap.read()
+            if not ret:
+                break
+            image = cv.flip(image, 1)  # Mirror display
+            debug_image = copy.deepcopy(image)
+        else:
+            frameSet = pipe.waitForFrames(100)   
+            if frameSet == None or frameSet.colorFrame() == None or frameSet.depthFrame() == None:
+                continue
+            else:
+                colorFrame = frameSet.colorFrame()
+                colorSize = colorFrame.dataSize()
+                colorData = colorFrame.data()
+                colorWidth = colorFrame.width()
+                colorHeight = colorFrame.height()
+                if colorSize != 0:
+                    colorData.resize((colorHeight, colorWidth, 3))
+                    colorData = cv.resize(colorData, (320, 240))
+                    image = colorData # The data is already in RGB format
+                    image.flags.writeable = False
+
+                debug_image = copy.deepcopy(image)
 
         # Detection implementation #############################################################
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
