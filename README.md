@@ -1,6 +1,6 @@
 # Hand Gesture Recognition
 Repository for training hand gesture data, based off of mediapipe.<br> 
-<br> ❗ Based off https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe❗
+<br> ❗ Based off https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe  ❗
 <br> 
 
 
