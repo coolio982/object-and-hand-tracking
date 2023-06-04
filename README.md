@@ -1,10 +1,5 @@
 # Hand Gesture Recognition
-Repository for training hand gesture data, based off of mediapipe.<br> 
-<br> ❗ Based off https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe  ❗
-<br> 
-
-
-
+Repository for training hand gesture data, using the mediapipe model.<br> 
 
 # Running the program
 ```bash
@@ -70,7 +65,7 @@ This file contains calculations for bounding boxes and displays regarding the ge
 Hand sign recognition and finger gesture recognition can add and change training data and retrain the model.
 
 ## Sign recognition
-### 1. Data Colleciton
+### 1. Data Collection
 Press k to enter the mode to start saving keypoints to  "model/keypoint_classifier/keypoint.csv"<br>
 0-9 can be used as labels for the keypoints. Modify the label of "model/keypoint_classifier/keypoint_classifier_label.csv" as appropriate.
 
@@ -91,5 +86,6 @@ Press h to enter the mode to save the history of fingertip coordinates to "model
 
 # Reference
 * [MediaPipe](https://mediapipe.dev/)
+* [hand gesture recognition using mediapipe ](https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe)
 
 
