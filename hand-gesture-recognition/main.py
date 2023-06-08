@@ -12,7 +12,7 @@ import mediapipe as mp
 
 # Workaround for the dll files
 import os
-os.add_dll_directory(os.path.dirname(os.path.abspath(__file__)) + "/lib")
+os.add_dll_directory(os.path.dirname(os.path.abspath(__file__)) + "/../lib")
 from Error import ObException
 import StreamProfile
 import Pipeline
