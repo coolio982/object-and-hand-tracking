@@ -1,4 +1,4 @@
-# Object Tracking and Hand Gesture Gecognition
+# Object Tracking and Hand Gesture Recognition
 Repository containing the evaluation and implementation of object tracking and hand gesture recognition algorithms. <br>
 Interfaces with any Astra Orbbec cameras containing a depth sensor. 
 
